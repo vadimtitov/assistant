@@ -134,7 +134,7 @@ snowboy-detect-swig.o
 personal_models/*
 
 # custom configs and credentials
-custom/*
+custom/
 
 # private skills
 home_control/
