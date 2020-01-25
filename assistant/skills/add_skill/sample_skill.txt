@@ -1,0 +1,15 @@
+"""{skill} skill."""
+
+from ..utils import pick_phrase
+
+regex = {
+    "{skill}": (
+        "enter regex here",
+    )
+}
+
+
+def {skill}(text, interface, assistant):
+    interface.output(
+        pick_phrase(answer, assistant.me)
+    )

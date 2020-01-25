@@ -150,6 +150,7 @@ good_night.py
 
 # other user specific
 daemons/
+other/
 grid/
 modules/other
 run.sh
