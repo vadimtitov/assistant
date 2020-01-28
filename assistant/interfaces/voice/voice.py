@@ -79,7 +79,6 @@ class VoiceInterface(object):
                     num_chars_printed = len(transcript)
                     interim_function(transcript.lower())
                 else:
-                    #notifier.update(transcript)
                     print(colored(transcript + overwrite_chars))
                     interim_function(transcript.lower())
                     final_function(transcript.lower())

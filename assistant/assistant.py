@@ -1,12 +1,25 @@
 #!/usr/bin/env python3
 
-import sys, os, subprocess, time, requests, random, traceback, yaml, threading
+import sys
+import os
+import subprocess
+import time
+import requests
+import random
+import traceback
+import yaml
+import threading
 
 from assistant.modules.snowboy import snowboydecoder
-from assistant.utils import colored, os_is_raspbian, device_is_charging
-from assistant.interfaces import VoiceInterface, TelegramBot, WebAPI
 from assistant.nlp import NaturalLanguageProcessor
 from assistant.skills import Skills
+
+from assistant.interfaces import (VoiceInterface,
+                                  TelegramBot,
+                                  WebAPI)
+from assistant.utils import (colored,
+                             os_is_raspbian,
+                             device_is_charging)
 
 if not os_is_raspbian():
     from pynput import keyboard
@@ -17,7 +30,6 @@ class Assistant(object):
     * Assistant can have several personalities which are passed as a 'name'
       variable which can be specified in modules/personalities.yaml file
     * Voice activation can be switched off for battery saving purposes.
-
     """
     def __init__(
         self,
@@ -32,7 +44,7 @@ class Assistant(object):
         # set parameters
         self.name = name.lower()
         self._voice_activation = voice_activation
-        self.activate_web_api = activate_web_api
+        self._activate_web_api = activate_web_api
         self._set_personality()
         self.on_server = on_server
 
@@ -49,14 +61,8 @@ class Assistant(object):
 
         # initialize interfaces
         self.voice = VoiceInterface(voice=self.personality["polly_voice"])
-        if self.activate_web_api: self.web_api = WebAPI(self)
+        if self._activate_web_api: self.web_api = WebAPI(self)
         self.bot = TelegramBot(self)
-        #self.actions.set_chat_bot(self.bot)
-
-        # say hello
-        #greet = self.actions.answer("greetings")
-        #self.bot.output(greet)
-        #self.voice.output(greet)
 
     def _set_personality(self):
         with open("assistant/custom/personalities.yaml") as yaml_file:
@@ -94,7 +100,9 @@ class Assistant(object):
         """Plays a random pre-recorded voice response from
         call_responds folder when assistant is called by keyword.
         """
-        path = "assistant/custom/call_responds/" + self.personality["responds_folder"]
+        path = "assistant/custom/call_responds/" +\
+            self.personality["responds_folder"]
+
         respond = random.choice(os.listdir(path))
         os.system(f'mpg123 {path}/{respond}')
 
@@ -199,13 +207,8 @@ class Assistant(object):
         if self.on_server:
             targets.append(self.bot.run)
 
-        if self.activate_web_api:
+        if self._activate_web_api:
             targets.append(self.web_api.run)
-
-        # add other daemons
-        #targets += daemon_importer.get_targets(
-        #    "assistant/modules/daemons/",
-        #    pass_object = self)
 
         for target in targets:
             threading.Thread(target=target).start()
