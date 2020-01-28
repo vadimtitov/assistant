@@ -22,6 +22,14 @@ sudo apt-get install portaudio19-dev
 echo "*** Installing other dependencies***"
 sudo apt-get install xdotool
 
+echo "*** Installing Swig ***"
+cd dependencies/swig-3.0.12
+./configure --prefix=/usr
+make -j 4
+sudo make install
+cd ..
+cd ..
+
 echo "*** Installing snowboy ***"
 cd assistant/modules/snowboy/swig/Python3
 make
