@@ -20,7 +20,7 @@ sudo apt-get install python-pyaudio python3-pyaudio sox libatlas-base-dev
 sudo apt-get install portaudio19-dev
 
 echo "*** Installing other dependencies***"
-sudo apt-get install xdotool
+sudo apt-get install xdotool mpg123 qdbus
 
 echo "*** Installing Swig ***"
 cd dependencies/swig-3.0.12

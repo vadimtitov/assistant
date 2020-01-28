@@ -1,6 +1,6 @@
 import boto3,os
 
-REGION_NAME = os.environ("AMAZON_REGION_NAME")
+REGION_NAME = os.environ["AMAZON_REGION_NAME"]
 
 
 class TTS:
