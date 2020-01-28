@@ -1,27 +1,28 @@
-# install requirements
-echo "Installing requirements..." 
-sudo apt-get install python-pyaudio python3-pyaudio sox libpcre3 libpcre3-dev libatlas-base-dev &&
-sudo apt-get install portaudio19-dev python-all-dev python3-all-dev libffi-dev xdotool &&
+
+echo "*** Updating the system ***"
+sudo apt-get update
+sudo apt-get upgrade
+
+echo "*** Installing PCRE ***"
+sudo apt-get install libc6-dev
+sudo apt-get install libpcre3 libpcre3-dev
+
+echo "*** Installing Python and Python Dev Kit ***"
+sudo apt-get install python-all-dev python3-all-dev
+sudo apt-get install python3.6
+sudo apt-get install python3.6-venv
+
+echo "*** Installing g++ ***"
+sudo apt-get install g++
+
+echo "*** Installing Pyaudio and dependencies***"
+sudo apt-get install python-pyaudio python3-pyaudio sox libatlas-base-dev
+sudo apt-get install portaudio19-dev
+
+echo "*** Installing other dependencies***"
 sudo apt-get install xdotool
 
-# install swig
-echo "Installing swig..."
-wget -O swig-3.0.12.tar.gz https://downloads.sourceforge.net/project/swig/swig/swig-3.0.12/swig-3.0.12.tar.gz?r=https%3A%2F%2Fsourceforge.net%2Fprojects%2Fswig%2Ffiles%2Fswig%2Fswig-3.0.12%2Fswig-3.0.12.tar.gz%2Fdownload&ts=1486782132&use_mirror=superb-sea2
- 
-tar xf swig-3.0.12.tar.gz
-cd swig-3.0.12
-
-./configure --prefix=/usr
-make -j 4
-sudo make install
-
-cd ..
-rm -rf swig-3.0.12
-rm swig-3.0.12.tar.gz
-
-
-# install snowboy
-echo "Installing snowboy..."
+echo "*** Installing snowboy ***"
 cd assistant/modules/snowboy/swig/Python3
 make
 cd ..
@@ -33,15 +34,9 @@ cd ..
 cd ..
 cd ..
 
-# create and activate venv
-echo "Creating virtual environment..."
-pip3 install virtualenv 
-python3 -m venv venv
+# create venv
+python3.6 -m venv venv
 source venv/bin/activate
-
-echo "Installing Python dependencies..."
 pip install -r requirements.txt
 
-echo "'bash run.sh' to run the assistant."
-
-
+echo "*** Installation complete ***"
