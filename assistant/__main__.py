@@ -1,18 +1,18 @@
-
+import os
 import sys
 
 print("*** Activating assistant ***")
 from .assistant import Assistant
 
-try:
-    voice = False if "False" in sys.argv[2] else True
+on_server = os.uname()[1] == "raspberrypi"
 
+try:
     assistant = Assistant(
         name = sys.argv[1],
-        voice_activation = voice,
-        on_server=False
+        on_server=on_server
     )
 except IndexError:
-    assistant = Assistant()
-
+    assistant = Assistant(
+        on_server=on_server
+    )
 assistant.run()
