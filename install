@@ -1,26 +1,28 @@
 
+INSTALL="apt-get install"
+
 echo "*** Updating the system ***"
 sudo apt-get update
 sudo apt-get upgrade
 
 echo "*** Installing PCRE ***"
-sudo apt-get install libc6-dev
-sudo apt-get install libpcre3 libpcre3-dev
+sudo $INSTALL libc6-dev
+sudo $INSTALL libpcre3 libpcre3-dev
 
 echo "*** Installing Python and Python Dev Kit ***"
-sudo apt-get install python-all-dev python3-all-dev
-sudo apt-get install python3.6
-sudo apt-get install python3.6-venv
+sudo $INSTALL python-all-dev python3-all-dev
+sudo $INSTALL python3.6
+sudo $INSTALL python3.6-venv
 
 echo "*** Installing g++ ***"
-sudo apt-get install g++
+sudo $INSTALL g++
 
 echo "*** Installing Pyaudio and dependencies***"
-sudo apt-get install python-pyaudio python3-pyaudio sox libatlas-base-dev
-sudo apt-get install portaudio19-dev
+sudo $INSTALL python-pyaudio python3-pyaudio sox libatlas-base-dev
+sudo $INSTALL portaudio19-dev
 
 echo "*** Installing other dependencies***"
-sudo apt-get install xdotool mpg123 qdbus
+sudo $INSTALL xdotool mpg123 qdbus
 
 echo "*** Installing Swig ***"
 cd dependencies/swig-3.0.12

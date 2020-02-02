@@ -149,6 +149,7 @@ good_night.py
 
 
 # other user specific
+dependencies/swig-3.0.12/
 daemons/
 other/
 grid/
@@ -157,6 +158,7 @@ requestbin.py
 deliveroo.py
 .run.sh.swp
 *.pmdl
+assistant/skills/
 
 
 
