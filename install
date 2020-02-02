@@ -4,6 +4,7 @@ INSTALL="apt-get install"
 echo "*** Updating the system ***"
 sudo apt-get update
 sudo apt-get upgrade
+sudo apt-get update
 
 echo "*** Installing PCRE ***"
 sudo $INSTALL libc6-dev
