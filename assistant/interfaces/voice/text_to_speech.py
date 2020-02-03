@@ -1,22 +1,20 @@
-import boto3,os
-
-REGION_NAME = os.environ["AMAZON_REGION_NAME"]
+import os
+import boto3
 
 
 class TTS:
 
     def __init__(self,
-        rootkey_file='assistant/custom/credentials/rootkey_polly.csv',
+        aws_access_key_id=os.environ["AWS_ACCESS_KEY_ID"],
+        aws_secret_access_key=os.environ["AWS_SECRET_ACCESS_KEY"],
         audio_folder="assistant/custom/",
-        region_name=REGION_NAME
+        region_name=os.environ["AWS_REGION_NAME"]
     ):
         self.audio_folder = audio_folder
-        with open(rootkey_file) as file:
-            keys = file.read().split('\n')
-        keys = [key.split('=')[1] for key in keys]
+        
         self.client = boto3.Session(
-            aws_access_key_id=keys[0],
-            aws_secret_access_key=keys[1],
+            aws_access_key_id=aws_access_key_id,
+            aws_secret_access_key=aws_secret_access_key,
             region_name=region_name).client('polly')
 
     def say(self, text, voiceID='Brian'):
@@ -27,7 +25,7 @@ class TTS:
 
         with open(self.audio_folder + 'speech.mp3', 'wb') as file:
             file.write(response['AudioStream'].read())
-            
+
         os.system(f'mpg123 {self.audio_folder}speech.mp3 >/dev/null 2>&1')
         os.system(f'rm {self.audio_folder}speech.mp3')
 

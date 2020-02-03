@@ -134,18 +134,7 @@ snowboy-detect-swig.o
 personal_models/*
 
 # custom configs and credentials
-custom/
-
-# private skills
-home_control/
-weather/
-enter_card.py
-edit_cv.py
-party_start.py
-knowledge.py
-i_am_home.py
-good_morning.py
-good_night.py
+#custom/
 
 
 # other user specific
