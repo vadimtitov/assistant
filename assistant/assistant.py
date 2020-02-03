@@ -144,10 +144,10 @@ class Assistant(object):
             target=self._respond).start()
 
     def _is_running_on_other_local(self, timeout=0.08):
-        LAPTOP_IP = "192.168.1.69"
+        PC_IP = os.environ["PC_IP"]
         try:
             return requests.get(
-                f"http://{LAPTOP_IP}:5000/status",
+                f"http://{PC_IP}:5000/status",
                 timeout=timeout
             ).text == "active"
         except:
@@ -183,8 +183,8 @@ class Assistant(object):
             time.sleep(10)
 
     def run(self):
-        """Runs the voice and key activation threads, telegram bot,
-        web api and daemons specified in modules/daemons folder.
+        """Runs the voice and key activation threads, 
+        telegram bot and web api.
         """
         def run_voice_activator():
             self.detector.start(self._on_call)
@@ -219,11 +219,3 @@ class Assistant(object):
 
         print(colored('Voice assistant: active', 'OKGREEN', frame = False))
 
-
-if __name__ == '__main__':
-    try:
-        voice = False if "False" in sys.argv[2] else True
-        assistant = Assistant(name = sys.argv[1], voice_activation = voice)
-    except IndexError:
-        assistant = Assistant()
-    assistant.run()
