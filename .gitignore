@@ -146,7 +146,6 @@ modules/other
 requestbin.py
 deliveroo.py
 .run.sh.swp
-*.pmdl
 assistant/skills/
 
 
