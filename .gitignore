@@ -131,20 +131,13 @@ dmypy.json
 # snowboy stuff
 snowboy-detect-swig.cc
 snowboy-detect-swig.o
-personal_models/*
 
-# custom configs and credentials
+# custom stuff
 assistant/custom/
-
+assistant/skills/
+assistant/modules/daemons/
 
 # other user specific
 dependencies/swig-3.0.12/
-daemons/
-other/
-grid/
-modules/other
-requestbin.py
-deliveroo.py
-.run.sh.swp
-assistant/skills/
+
 
