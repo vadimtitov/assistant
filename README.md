@@ -4,7 +4,8 @@ A highly customizable virtual assistant that has several interfaces including vo
 # Install
 ``` git clone https://github.com/vadimtitov/assistant.git
 cd assistant
-bash install``` 
+bash install
+``` 
  * Was only tested on Raspbian and Linux Mint so far.
 # Set up google cloud platform project for speech-to-text
 Create Google CLoud Platform project and download your credentials following [these instructions](https://cloud.google.com/docs/authentication/getting-started). 
