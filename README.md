@@ -1,5 +1,5 @@
 # Assistant
-A highly customizable virtual assistant that has several interfaces including voice, chatbot and web api.
+A highly customizable virtual assistant that has several interfaces including voice, chatbot and web API.
 
 ## Install
 ``` 
@@ -7,22 +7,22 @@ git clone https://github.com/vadimtitov/assistant.git
 cd assistant
 bash install
 ```
- * Was only tested on Raspbian and Linux Mint so far.
+ * So far has only been tested on Raspbian and Linux Mint.
 ## Set up google cloud platform project for speech-to-text
-1. Create Google CLoud Platform project and download your credentials following [these instructions](https://cloud.google.com/docs/authentication/getting-started) and common sence.
-2. Copy your project id to `GOOGLE_PROJECT_ID` variable inside `assistant/custom/credentials/set_env_var`. 
+1. Create Google Cloud Platform project and download your credentials following [these instructions](https://cloud.google.com/docs/authentication/getting-started)
+2. Copy your project ID to `GOOGLE_PROJECT_ID` variable inside `assistant/custom/credentials/set_env_var`
 3. Copy the content of your credentials file into `assistant/custom/credentials/google_credentials.json`
-4. Activate [Cloud Speech-To-Text API](https://console.developers.google.com/apis/library/speech.googleapis.com/) for your project.
+4. Activate [Cloud Speech-To-Text API](https://console.developers.google.com/apis/library/speech.googleapis.com/) for your project
 
 ## Set up AWS for text-to-speech
 Create your [AWS](https://aws.amazon.com/) account, get `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` and insert them into `assistant/custom/credentials/set_env_var`. This ensures you can use Amazon Polly Text-To-Speech generator.
 
 ## Set up Telegram bot
 1. Create a Telegram account if you don't have one yet
-2. To find out your telegram account id send command `/my_id` to [this bot](https://t.me/get_id_bot). Once you have it insert it into `assistant/custom/telegram_config.py` file into `ALLOWED_USERS_DICT` under `admin` key. You can grant access to other users here as well.
+2. To find out your telegram account id send command `/my_id` to [this bot](https://t.me/get_id_bot). Once you have it insert it into `assistant/custom/telegram_config.py` file into `ALLOWED_USERS_DICT` under `admin` key. You can grant access to other users here as well
 3. To create new bot send command `/newbot` to [FatherBot](https://t.me/botfather) and follow the instructions
 4. Copy bot token into `assistant/custom/telegram_config.py`
-5. You can also specify custom bot keyboard in `assistant/custom/telegram_config.py`.
+5. You can also specify custom bot keyboard in `assistant/custom/telegram_config.py`
 
 ## Create custom hotword
 You can train your assistant to respond to any name. For that use [Snowboy](https://snowboy.kitt.ai/) hotword detection service. Log in and click `Create Hotword`. After providing 3 audio samples download your model file `your_hotword.pmdl` and place it inside `assistant/custom/snowboy_models/`.
