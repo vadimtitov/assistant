@@ -2,7 +2,8 @@
 A highly customizable virtual assistant that has several interfaces including voice, chatbot and web api.
 
 # Install
-``` git clone https://github.com/vadimtitov/assistant.git
+``` 
+git clone https://github.com/vadimtitov/assistant.git
 cd assistant
 bash install
 ```
@@ -31,7 +32,7 @@ Take a look inside `assistant/custom/personalities.yaml`:
   - `calls_me`: specify how assitant will call you (e.g. your name)
   - `sensitivity`: sensitivity ∈ [0, 1] of your hotword , adjust this to find optimal response rate/false detection. Typically 0.3-0.5 works good
   - `keyword_file`: `your_hotword.pmdl` from the step above
-  - `responds_folder`: a folder located inside `assistant/custom/call_responds/` that contains mp3 files with pre-recorded assistant responds (e.g "yes?", "aha?", "how can I help?"). Pre-recording makes responds much faster. To generate these mp3 files use [Amazon Polly]((https://aws.amazon.com/polly/). Click `Get Started with Amazon Polly` and log in to see all available voices
-  - `polly_voice`: a "name" of Amazon Polly voice of your choice
+  - `responds_folder`: a folder located inside `assistant/custom/call_responds/` that contains mp3 files with pre-recorded assistant responds (e.g "yes?", "aha?", "how can I help?"). Pre-recording makes responds much faster. To generate these mp3 files use [Amazon Polly](https://aws.amazon.com/polly/). Click `Get Started with Amazon Polly` and log in to see all available voices
+  - `polly_voice`: a "name" of Amazon Polly voice of your choice, e.g "Joanna"
 
 
