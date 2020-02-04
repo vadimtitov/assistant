@@ -137,7 +137,7 @@ class TelegramBot(Updater):
                 return update.message.text
             time.sleep(0.1)
 
-    def output(self, text, chat_id=None, prob=None):
+    def output(self, text, chat_id=None, prob=1):
         if prob is 1 or random.random() < prob:
             if not chat_id:
                 chat_id = self.last_id
