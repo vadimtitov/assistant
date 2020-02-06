@@ -1,6 +1,8 @@
-from flask import Flask, request
+import os
 import socket
 import webbrowser
+
+from flask import Flask, request
 from assistant.utils import colored
 
 app = Flask(__name__)
@@ -43,6 +45,26 @@ class WebAPI:
             webbrowser.open(payload["url"])
 
         return "_"
+
+    @app.route("/system/<method>/<command>", methods=["POST"])
+    def system_control(method, command):
+        #payload = request.get_json()
+
+        print(method, command)
+
+        if method == "volume":
+            if command == "up":
+                os.system('xdotool key XF86AudioRaiseVolume')
+            elif command == "down":
+                os.system('xdotool key XF86AudioLowerVolume')
+            elif command == "set":
+                payload = request.get_json()
+                #payload["level"]
+        elif method == "button":
+            if command == "next":
+                os.system('xdotool key XF86AudioNext')
+            elif "prev" in command:
+                os.system('xdotool key XF86AudioPrev')
 
     def run(self):
         # getting local ip

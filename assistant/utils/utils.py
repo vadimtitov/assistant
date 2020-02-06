@@ -7,7 +7,7 @@ from datetime import datetime
 
 
 def chatbot_only(func):
-    
+
     def wrapper(text, interface, assistant):
         if type(interface).__name__ == "TelegramBot":
             func(text, interface, assistant)
@@ -19,6 +19,24 @@ def voice_only(func):
 
     def wrapper(text, interface, assistant):
         if type(interface).__name__ == "VoiceInterface":
+            func(text, interface, assistant)
+
+    return wrapper
+
+
+def server_only(func):
+
+    def wrapper(text, interface, assistant):
+        if assistant.on_server:
+            func(text, interface, assistant)
+
+    return wrapper
+
+
+def pc_only(func):
+
+    def wrapper(text, interface, assistant):
+        if not assistant.on_server:
             func(text, interface, assistant)
 
     return wrapper

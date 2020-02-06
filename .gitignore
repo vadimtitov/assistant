@@ -133,7 +133,7 @@ snowboy-detect-swig.cc
 snowboy-detect-swig.o
 
 # custom stuff
-#assistant/custom/
+assistant/custom/
 assistant/skills/
 assistant/modules/daemons/
 

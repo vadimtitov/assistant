@@ -42,7 +42,5 @@ class Keyboard:
                 except ValueError:
                     pass
 
-    def type(self, text, delay=0.03):
-        for letter in text:
-            self.press(letter)
-            time.sleep(delay)
+    def type(self, text):
+        self.keyboard.type(text)

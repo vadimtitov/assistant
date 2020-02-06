@@ -33,5 +33,3 @@ if __name__ == '__main__':
         text = input("Type your request: ")
 
         print(list(nlp.structs(text)))
-
-        #nlp.finalAssist(text)

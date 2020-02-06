@@ -37,9 +37,10 @@ class TextStructure(object):
         return tabulate(result, tablefmt = "fancy_grid") #rst
 
     def __eq__(self, other):
-        return self.intent == other.intent and\
-               self.subintent == other.subintent and\
-               self.entities == other.entities
+        return all((self.intent == other.intent,
+            self.subintent == other.subintent,
+            self.entities == other.entities
+        ))
 
     def update(self, other):
         """Merge entities of two text structures.
