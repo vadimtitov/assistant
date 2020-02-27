@@ -7,8 +7,10 @@ import time
 import requests
 import random
 import traceback
+import socket
 import yaml
 import threading
+from urllib3.exceptions import ConnectTimeoutError
 
 from assistant.modules.snowboy import snowboydecoder
 from assistant.nlp import NaturalLanguageProcessor
@@ -20,7 +22,8 @@ from assistant.interfaces import (VoiceInterface,
 from assistant.utils import (colored,
                              os_is_raspbian,
                              device_is_charging,
-                             device_has_battery)
+                             device_has_battery,
+                             get_my_ip)
 
 if not os_is_raspbian():
     from pynput import keyboard
@@ -37,7 +40,6 @@ class Assistant(object):
         name="friday",
         on_server=False,
         voice_activation=True,
-        activate_web_api=True
     ):
         if not on_server:
             assert not os_is_raspbian(), "You are running on raspberry pi but on_server=False."
@@ -45,8 +47,9 @@ class Assistant(object):
         # set parameters
         self.name = name.lower()
         self._voice_activation = voice_activation
-        self._activate_web_api = activate_web_api
+
         self._set_personality()
+        self._set_ecosystem()
         self.on_server = on_server
 
         # initialize hotword detector
@@ -62,13 +65,58 @@ class Assistant(object):
 
         # initialize interfaces
         self.voice = VoiceInterface(voice=self.personality["polly_voice"])
-        if self._activate_web_api: self.web_api = WebAPI(self)
+        self.web_api = WebAPI(self)
         self.bot = TelegramBot(self)
 
     def _set_personality(self):
-        with open("assistant/custom/personalities.yaml") as yaml_file:
-            self.personality = yaml.load(yaml_file)[self.name]
+        with open("assistant/custom/personalities.yaml") as file:
+            self.personality = yaml.safe_load(file)[self.name]
             self.me = self.personality["calls_me"]
+
+    def _set_ecosystem(self):
+        with open("assistant/custom/ecosystem_config.yaml") as file:
+            devices = yaml.safe_load(file)["devices"]
+
+        # find current device priority
+        my_ip = get_my_ip()
+        for _, params in devices.items():
+            if params["ip"] == my_ip:
+                my_priority = params["priority"]
+                print("my priority:", my_priority)
+
+        # find devices with higher priority
+        self.higher_priority_ips = []
+        for _, params in devices.items():
+            if params["priority"]:
+                if params["priority"] < my_priority:
+                    self.higher_priority_ips.append(params["ip"])
+        print("Higher ips:", self.higher_priority_ips)
+
+    def _is_main_listener(self):
+        for ip in self.higher_priority_ips:
+            try:
+                return not requests.get(
+                    f"http://{ip}:5000/status",
+                    timeout=1
+                ).text == "active"
+            except: # (ConnectionRefusedError, ConnectTimeoutError)
+                print(ip, "is not active")
+                return True
+
+    def _pick_main_listener(self):
+        """If assistant runs on multiple devices on the same network
+        only activate keyword detector for the one with highest priority.
+        """
+        while True:
+            if self._is_main_listener():
+                print("You are main listener!")
+                self.detector.start(self._on_call)
+                self._keyword_detector_active = True
+            else:
+                print("You are not main listener!")
+                self.detector.terminate()
+                self._keyword_detector_active = False
+            time.sleep(10)
 
     def fast_assist(self, text):
         """Calls handle funtion if text has enough
@@ -122,7 +170,8 @@ class Assistant(object):
             traceback.print_exc()
             self.voice.output("Error occured.")
 
-        self.detector.start(self._on_call)
+        if self._keyword_detector_active:
+            self.detector.start(self._on_call)
 
     def _on_call(self):
         """Functions to call when assistant is called by voice.
@@ -130,29 +179,11 @@ class Assistant(object):
         #if not on raspberry
         #keyboard.press('ctrl') # to activate screen
         #os.system("pkill mpg123") # stop assistant if it was talking
-
-        # don't assist on server if running on another device, e.g. laptop
-        if all((
-            self.on_server,
-            self._is_running_on_other_local()
-        )):
-            return
-
         threading.Timer(
             interval=0.4,
             function=self._listen).start()
         threading.Thread(
             target=self._respond).start()
-
-    def _is_running_on_other_local(self, timeout=0.08):
-        PC_IP = os.environ["PC_IP"]
-        try:
-            return requests.get(
-                f"http://{PC_IP}:5000/status",
-                timeout=timeout
-            ).text == "active"
-        except:
-            return False
 
     def _on_press(self, key):
         """Function to call when assistant is called by button.
@@ -162,6 +193,7 @@ class Assistant(object):
                 target=self._listen).start()
 
     def _manage_power_saving(self):
+        return
         """If device is not charging, turn off
         keyword detector to save power.
         """
@@ -188,6 +220,7 @@ class Assistant(object):
         telegram bot and web api.
         """
         def run_voice_activator():
+            self._keyword_detector_active = True
             self.detector.start(self._on_call)
 
         def run_key_activator():
@@ -197,9 +230,12 @@ class Assistant(object):
             with keyboard.Listener(on_press=self._on_press) as listener:
                 listener.join()
 
-        targets = []
+        targets = [self.web_api.run]
+
         if self._voice_activation:
             targets.append(run_voice_activator)
+            if self.higher_priority_ips:
+                targets.append(self._pick_main_listener)
 
         if not self.on_server:
             targets.append(run_key_activator)
@@ -208,9 +244,6 @@ class Assistant(object):
 
         if self.on_server:
             targets.append(self.bot.run)
-
-        if self._activate_web_api:
-            targets.append(self.web_api.run)
 
         for target in targets:
             threading.Thread(target=target).start()

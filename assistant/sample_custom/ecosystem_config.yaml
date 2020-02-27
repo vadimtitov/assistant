@@ -1,0 +1,17 @@
+# This file contains info about devices that run assistant.
+# Please make local IP adresses static in your router settings and specify them here.
+# Also specify the priority of each device. In this example if sample-device-1
+# is running then sample-device-2 will not run keyword detector.
+
+devices:
+  sample-device-1: # could be your pc
+    ip: 192.168.1.10
+    room: main
+    priority: 1
+
+  sample-device-2: # could be your raspberry-pi
+    ip: 192.168.1.11
+    room: main
+    priority: 2
+
+

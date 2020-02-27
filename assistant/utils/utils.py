@@ -58,6 +58,12 @@ def pick_phrase(phrases, me=''):
 def os_is_raspbian():
     return os.uname()[1] == "raspberrypi"
 
+def get_my_ip():
+    with os.popen(
+        "ifconfig | grep 'inet 192'"
+    ) as process:
+        return re.findall(r"\d{3}\.\d{3}\.\d\.\d{2,3}", process.read())[0]
+
 
 def device_is_charging():
     with os.popen(
