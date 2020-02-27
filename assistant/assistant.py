@@ -19,7 +19,8 @@ from assistant.interfaces import (VoiceInterface,
                                   WebAPI)
 from assistant.utils import (colored,
                              os_is_raspbian,
-                             device_is_charging)
+                             device_is_charging,
+                             device_has_battery)
 
 if not os_is_raspbian():
     from pynput import keyboard
@@ -183,7 +184,7 @@ class Assistant(object):
             time.sleep(10)
 
     def run(self):
-        """Runs the voice and key activation threads, 
+        """Runs the voice and key activation threads,
         telegram bot and web api.
         """
         def run_voice_activator():
@@ -202,7 +203,8 @@ class Assistant(object):
 
         if not self.on_server:
             targets.append(run_key_activator)
-            targets.append(self._manage_power_saving)
+            if device_has_battery():
+                targets.append(self._manage_power_saving)
 
         if self.on_server:
             targets.append(self.bot.run)
@@ -218,4 +220,3 @@ class Assistant(object):
             # set some sigmal for pi to know you are running
 
         print(colored('Voice assistant: active', 'OKGREEN', frame = False))
-

@@ -58,14 +58,22 @@ def pick_phrase(phrases, me=''):
 def os_is_raspbian():
     return os.uname()[1] == "raspberrypi"
 
+
 def device_is_charging():
     with os.popen(
         "upower -i /org/freedesktop/UPower/devices/battery_BAT0 | grep state"
     ) as process:
         return bool(re.findall(
-            r"fully-charged| charging",
+            r"fully-charged| charging|^(?![\s\S])",
             process.read()
         ))
+
+def device_has_battery():
+    with os.popen(
+        "upower -i /org/freedesktop/UPower/devices/battery_BAT0 | grep power"
+    ) as process:
+        return "yes" in process.read()
+
 
 def colored(text, color='WARNING', frame=True):
     if frame:
