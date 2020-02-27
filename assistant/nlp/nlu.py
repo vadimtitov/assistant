@@ -1,52 +1,27 @@
 #!/usr/bin/env python3
 
-import os, json, re, yaml
+import os
+import re
+
 from tabulate import tabulate
-#import spacy
-#import en_core_web_sm
 
 from .text_structure import TextStructure
-from ..skills import expressions
-
-R_ENTITIES = re.compile(r"<{1,2}(.*?)>{1,2}")
-
-SPACY_ENTITIES = {
-    "PERSON": "person", "GPE": "location", "LANGUAGE": "language",
-    "DATE": "date", "TIME": "time", "MONEY": "currency",
-    "CARDINAL": "number","NORP":"social_group", "FAC": "building",
-    "ORG":"organization", "LOC": "geo_object", "PRODUCT": "product",
-    "EVENT": "event", "WORK_OF_ART":"work_of_art", "PERCENT": "percent",
-    "ORDINAL":"ordinal", "QUANTITY": "quantity"
-}
-
-CUSTOM_ENTITIES = {
-    "restaurant": (
-        "McDonalds",
-        "Starbucks",
-        "Nando's",
-        "KFC",
-        "BK"
-    ),
-    "app_launchers": (
-        "",
-    ),
-    "website_url": (
-        "",
-    )
-}
+from ..skills import expressions, entities
 
 
-def regex_prepare():
+def prepare_regex_expressions():
     """Convert expressions defined in skills
-    into proper regex format.
+    into a proper regex format.
     """
     processed_exprs = {}
+    entities_regex = re.compile(r"<{1,2}(.*?)>{1,2}")
+
     for intent, exprs in expressions.items():
         for expr in exprs:
-            "0. Extract entities "
-            entity_names = re.findall(R_ENTITIES, expr)
+            # extract entities
+            entity_names = re.findall(entities_regex, expr)
 
-            "1. Create search regex"
+            # create search regex
             regex = re.sub(r"<<.*?>>",  r"(.*)", expr) #"(.*?)"
             regex = re.sub(r"<.*?>",  r"([a-zA-Z0-9_]*)", regex)
 
@@ -62,31 +37,31 @@ def regex_prepare():
     return processed_exprs
 
 
-processed_exprs = regex_prepare()
+processed_exprs = prepare_regex_expressions()
 
 
-class NaturalLanguageUnderstander(object):
+class NaturalLanguageUnderstander:
     """One-off Natural Language Understander.
-    Combines results from 3 ways of finding entities and 2 ways of finding intents.
-    Function understand() returns a list of 1 or, in the case of multiple intents, more TextStructure objects.
     """
 
     def __init__(self,
         expressions=processed_exprs,
-        custom_entities=CUSTOM_ENTITIES
+        custom_entities=entities
     ):
         self.expressions = expressions
-        self.custom_entities = CUSTOM_ENTITIES
-        self.spacy_ents = SPACY_ENTITIES
-        #self.spacy_nlp = en_core_web_sm.load()
+        self.custom_entities = custom_entities
 
     def understand(self, text):
         """Returns an TextStructure object that will contain
         intent, entitites, etc. of inputted text.
         """
+        text = text.lower()
         result = self.regex_undestand(text)
-        #result["entities"].update(self.find_CUSTOM_ENTITIES(text))
-        #result["entities"].update(self.find_spacy_entities(text))
+
+        # custom entitites update (they are complete/final by default)
+        custom_entities = self.find_custom_entities(text)
+        result["entities"].update(custom_entities)
+        result.update({"complete_entities": set(custom_entities.keys())})
 
         return TextStructure(result)
 
@@ -121,40 +96,19 @@ class NaturalLanguageUnderstander(object):
             "end": None
         }
 
-    def find_CUSTOM_ENTITIES(self, text):
+    def find_custom_entities(self, text):
         """Extract entities from a text by matching them
         with the ones specifies in `custom_entities`.
         """
-        text = text.lower()
         result = dict()
-        for key, value in self.custom_entities.items():
-            temp = []
-            for entity in value:
-                entity = entity.lower()
-                start = text.find(entity)
-                if start != -1:
-                    end = start + len(entity)
-                    temp.append(text[start:end])
-                else:
-                    pass
-            if temp != []:
-                result[key] = temp
-        return result
 
-    def find_spacy_entities(self, text):
-        """Extract entities using spacy model.
-        """
-        result = dict()
-        doc = self.spacy_nlp(text)
-        try:
-            for entity in doc.ents:
-                name = self.spacy_ents[entity.label_]
-                result[name] = []
-            for entity in doc.ents:
-                name = self.spacy_ents[entity.label_]
-                result[name].append(entity.text)
-        except KeyError:
-            pass
+        for key, entities in self.custom_entities.items():
+            regex = "|".join(entities)
+            match = re.findall(regex, text)
+
+            if match:
+                result.update({key: match[0]})
+
         return result
 
 

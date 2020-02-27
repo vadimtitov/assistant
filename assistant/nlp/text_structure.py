@@ -2,8 +2,6 @@ import re, yaml
 from tabulate import tabulate
 
 from ..skills import expressions
-#with open("assistant/nlp/lexicon_en.yaml") as json_file:
-#    expressions = yaml.load(json_file)
 
 
 class TextStructure(object):
@@ -23,6 +21,7 @@ class TextStructure(object):
         except (KeyError, TypeError):
             pass
         self.entities = result['entities']
+        self.complete_entities = result["complete_entities"]
         self.expression = result["expression"]
         self.end = result["end"]
 
@@ -68,11 +67,11 @@ class TextStructure(object):
         required to perform an action.
         Used for FastAssist feature.
         """
-        if self.intent is None:
+        if not self.intent:
             return False
 
         if self.subintent:
-            similar_expr = expressions[self.intent + "." + self.subintent]
+            similar_expr = expressions[".".join((self.intent, self.subintent))]
         else:
             similar_expr = expressions[self.intent]
 
@@ -80,8 +79,12 @@ class TextStructure(object):
         if all("<" not in e for e in similar_expr):
             return True
 
-        #if all entities are present
+        # if all required entities are present
         required_entities = set(re.findall(r"<{1,2}(.*?)>{1,2}", similar_expr[0]))
+
+        if self.complete_entities == required_entities:
+            return True
+
         present_entities = set(self.entities.keys())
         if required_entities.issubset(present_entities):
             # if all entities are fixed <>

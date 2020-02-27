@@ -11,11 +11,19 @@ skill_names.remove("__init__")
 skill_names.remove("__pycache__")
 
 expressions = {}
+entities = {}
 
 for skill in skill_names:
     # get a dictionary of every skill's regex expression
     exec(f"from .{skill} import regex")
     expressions.update(regex)
+
+    # get custom entitites defined in skills
+    try:
+        exec(f"from .{skill} import entities as ents")
+        entities.update(ents)
+    except ImportError:
+        pass
 
     # get skill functions
     exec(f"from .{skill} import *")
@@ -28,7 +36,7 @@ class Skills:
 
     def handle(self, text_struct, interface):
         """Call the skill function that corresponds to intent from text_struct."""
-        #unknown intent
+        # unknown intent
         if text_struct.text == '' or text_struct.text == ' ':
             return
 
