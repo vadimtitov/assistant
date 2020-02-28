@@ -171,7 +171,7 @@ class Assistant(object):
         natural language processor when assistant is called.
         """
         # let the speech recognizer use the microphone
-        self._terminate_keyword_detector()
+        self.detector.terminate()
 
         try:
             self.voice.recognize_as_stream(
@@ -181,7 +181,7 @@ class Assistant(object):
             traceback.print_exc()
             self.voice.output("Error occured.")
 
-        self._activate_keyword_detector()
+        self.detector.start(self._on_call)
 
     def _on_call(self):
         """Functions to call when assistant is called by voice.
