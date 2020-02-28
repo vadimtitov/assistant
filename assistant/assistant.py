@@ -7,10 +7,8 @@ import time
 import requests
 import random
 import traceback
-import socket
 import yaml
 import threading
-from urllib3.exceptions import ConnectTimeoutError
 
 from assistant.modules.snowboy import snowboydecoder
 from assistant.nlp import NaturalLanguageProcessor
@@ -47,6 +45,7 @@ class Assistant(object):
         # set parameters
         self.name = name.lower()
         self._voice_activation = voice_activation
+        self._keyword_detector_active = False
 
         self._set_personality()
         self._set_ecosystem()
@@ -67,6 +66,19 @@ class Assistant(object):
         self.voice = VoiceInterface(voice=self.personality["polly_voice"])
         self.web_api = WebAPI(self)
         self.bot = TelegramBot(self)
+
+    def _activate_keyword_detector(self):
+        if not self._keyword_detector_active:
+            self._keyword_detector_active = True
+            self.detector.start(self._on_call)
+
+    def _terminate_keyword_detector(self):
+        if self._keyword_detector_active:
+            self._keyword_detector_active = False
+            try:
+                self.detector.terminate()
+            except AttributeError:
+                pass
 
     def _set_personality(self):
         with open("assistant/custom/personalities.yaml") as file:
@@ -95,27 +107,26 @@ class Assistant(object):
     def _is_main_listener(self):
         for ip in self.higher_priority_ips:
             try:
-                return not requests.get(
+                if requests.get(
                     f"http://{ip}:5000/status",
                     timeout=1
-                ).text == "active"
+                ).text == "active":
+                    return False
             except: # (ConnectionRefusedError, ConnectTimeoutError)
                 print(ip, "is not active")
-                return True
+            return True
 
-    def _pick_main_listener(self):
+    def _pick_main_detector(self):
         """If assistant runs on multiple devices on the same network
         only activate keyword detector for the one with highest priority.
         """
         while True:
             if self._is_main_listener():
                 print("You are main listener!")
-                self.detector.start(self._on_call)
-                self._keyword_detector_active = True
+                self._activate_keyword_detector()
             else:
                 print("You are not main listener!")
-                self.detector.terminate()
-                self._keyword_detector_active = False
+                self._terminate_keyword_detector()
             time.sleep(10)
 
     def fast_assist(self, text):
@@ -160,7 +171,7 @@ class Assistant(object):
         natural language processor when assistant is called.
         """
         # let the speech recognizer use the microphone
-        self.detector.terminate()
+        self._terminate_keyword_detector()
 
         try:
             self.voice.recognize_as_stream(
@@ -170,8 +181,7 @@ class Assistant(object):
             traceback.print_exc()
             self.voice.output("Error occured.")
 
-        if self._keyword_detector_active:
-            self.detector.start(self._on_call)
+        self._activate_keyword_detector()
 
     def _on_call(self):
         """Functions to call when assistant is called by voice.
@@ -185,71 +195,47 @@ class Assistant(object):
         threading.Thread(
             target=self._respond).start()
 
-    def _on_press(self, key):
-        """Function to call when assistant is called by button.
-        """
-        if key == keyboard.Key.f7:
-            threading.Thread(
-                target=self._listen).start()
-
     def _manage_power_saving(self):
         return
         """If device is not charging, turn off
         keyword detector to save power.
         """
-        self._keyword_detector_active = True
         while True:
             if device_is_charging():
-                if not self._keyword_detector_active:
-                    self.voice.output("Starting keyword recognition")
-                    self.detector.start(self._on_call)
-                    self._keyword_detector_active = True
+                self._activate_keyword_detector()
             else:
-                try:
-                    if self._keyword_detector_active:
-                        self.detector.terminate()
-                        self._keyword_detector_active = False
-                        self.voice.output(
-                            "Keyword recognition disabled to save power")
-                except AttributeError:
-                    pass
+                self._terminate_keyword_detector()
             time.sleep(10)
+
+    def _activate_key_listener(self):
+        # no need for key activator on server version (for now)
+        def on_press(key):
+            if key == keyboard.Key.f7:
+                threading.Thread(
+                    target=self._listen).start()
+
+        with keyboard.Listener(on_press=on_press) as listener:
+            listener.join()
 
     def run(self):
         """Runs the voice and key activation threads,
         telegram bot and web api.
         """
-        def run_voice_activator():
-            self._keyword_detector_active = True
-            self.detector.start(self._on_call)
-
-        def run_key_activator():
-            # no need for key activator on server version (for now)
-            if self.on_server:
-                return
-            with keyboard.Listener(on_press=self._on_press) as listener:
-                listener.join()
-
         targets = [self.web_api.run]
 
         if self._voice_activation:
-            targets.append(run_voice_activator)
+            targets.append(self._activate_keyword_detector)
             if self.higher_priority_ips:
-                targets.append(self._pick_main_listener)
+                targets.append(self._pick_main_detector)
 
         if not self.on_server:
-            targets.append(run_key_activator)
+            targets.append(self._activate_key_listener)
             if device_has_battery():
                 targets.append(self._manage_power_saving)
-
-        if self.on_server:
+        else:
             targets.append(self.bot.run)
 
         for target in targets:
             threading.Thread(target=target).start()
-
-        if not self.on_server:
-            pass
-            # set some sigmal for pi to know you are running
 
         print(colored('Voice assistant: active', 'OKGREEN', frame = False))
