@@ -114,7 +114,7 @@ class Assistant(object):
                     return False
             except: # (ConnectionRefusedError, ConnectTimeoutError)
                 print(ip, "is not active")
-            return True
+        return True
 
     def _pick_main_detector(self):
         """If assistant runs on multiple devices on the same network
