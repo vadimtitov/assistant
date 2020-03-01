@@ -57,6 +57,7 @@ class Assistant(object):
             sensitivity=self.personality["sensitivity"],
             audio_gain=1
         )
+        self.detector_locked = False
 
         # initialize componets
         self.nlp = NaturalLanguageProcessor()
@@ -68,11 +69,15 @@ class Assistant(object):
         self.bot = TelegramBot(self)
 
     def _activate_keyword_detector(self):
+        while self.detector_locked:
+            time.sleep(0.5)
         if not self._keyword_detector_active:
             self._keyword_detector_active = True
             self.detector.start(self._on_call)
 
     def _terminate_keyword_detector(self):
+        while self.detector_locked:
+            time.sleep(0.5)
         if self._keyword_detector_active:
             self._keyword_detector_active = False
             try:
@@ -170,8 +175,10 @@ class Assistant(object):
         """Initiates streaming speech recognition and
         natural language processor when assistant is called.
         """
+        self.detector_locked = True
         # let the speech recognizer use the microphone
-        self.detector.terminate()
+        if self._keyword_detector_active:
+            self.detector.terminate()
 
         try:
             self.voice.recognize_as_stream(
@@ -179,9 +186,13 @@ class Assistant(object):
                 self.final_assist)
         except Exception:
             traceback.print_exc()
+            # close the notif
             self.voice.output("Error occured.")
 
-        self.detector.start(self._on_call)
+        # if listener was active then activate it
+        if self._keyword_detector_active:
+            self.detector.start(self._on_call)
+        self.detector_locked = False
 
     def _on_call(self):
         """Functions to call when assistant is called by voice.
