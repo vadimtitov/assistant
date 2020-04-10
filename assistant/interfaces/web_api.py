@@ -1,4 +1,5 @@
 import os
+import _thread
 import socket
 import webbrowser
 
@@ -14,9 +15,14 @@ class WebAPI:
         assistant = _assistant
 
     @app.route("/<request>")
-    def get_status(request):
+    def get(request):
         if request=="status":
             return "active"
+
+        if request=="kill":
+            print("kill bitch")
+            _thread.interrupt_main()
+            return "killed"
 
     @app.route("/telegram/<method>", methods=["POST"])
     def telegram(method):

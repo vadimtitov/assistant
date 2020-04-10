@@ -13,6 +13,7 @@ import threading
 from assistant.modules.snowboy import snowboydecoder
 from assistant.nlp import NaturalLanguageProcessor
 from assistant.skills import Skills
+from assistant.modules.notifier import Notifier
 
 from assistant.interfaces import (VoiceInterface,
                                   TelegramBot,
@@ -22,6 +23,7 @@ from assistant.utils import (colored,
                              device_is_charging,
                              device_has_battery,
                              get_my_ip)
+
 
 if not os_is_raspbian():
     from pynput import keyboard
@@ -62,11 +64,15 @@ class Assistant(object):
         # initialize componets
         self.nlp = NaturalLanguageProcessor()
         self.skills = Skills(self)
+        self.notifier = Notifier()
 
         # initialize interfaces
-        self.voice = VoiceInterface(voice=self.personality["polly_voice"])
         self.web_api = WebAPI(self)
         self.bot = TelegramBot(self)
+        self.voice = VoiceInterface(
+            notifier=self.notifier,
+            voice=self.personality["polly_voice"]
+        )
 
     def _activate_keyword_detector(self):
         while self.detector_locked:
@@ -100,6 +106,8 @@ class Assistant(object):
             if params["ip"] == my_ip:
                 my_priority = params["priority"]
                 print("my priority:", my_priority)
+            else:
+                my_priority = 1 #?
 
         # find devices with higher priority
         self.higher_priority_ips = []
@@ -186,7 +194,7 @@ class Assistant(object):
                 self.final_assist)
         except Exception:
             traceback.print_exc()
-            # close the notif
+            self.notifier.close()
             self.voice.output("Error occured.")
 
         # if listener was active then activate it

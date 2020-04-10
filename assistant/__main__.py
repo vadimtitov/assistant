@@ -1,18 +1,24 @@
 import os
 import sys
 
-print("*** Activating assistant ***")
 from .assistant import Assistant
 
-on_server = os.uname()[1] == "raspberrypi"
 
-try:
-    assistant = Assistant(
-        name = sys.argv[1],
-        on_server=on_server
-    )
-except IndexError:
-    assistant = Assistant(
-        on_server=on_server
-    )
-assistant.run()
+def main():
+    print("*** Activating assistant ***")
+    on_server = os.uname()[1] == "raspberrypi"
+
+    try:
+        assistant = Assistant(
+            name = sys.argv[1],
+            on_server=on_server
+        )
+    except IndexError:
+        assistant = Assistant(
+            on_server=on_server
+        )
+    assistant.run()
+
+
+if __name__ == "__main__":
+    main()

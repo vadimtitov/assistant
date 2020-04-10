@@ -6,9 +6,9 @@ from google.cloud.speech import types
 
 from .microphone_stream import MicrophoneStream, RATE
 from .text_to_speech import TTS
-from assistant.utils import colored
-from assistant.modules.spotify import Spotify
-from assistant.modules.notifier import Notifier
+from ...utils import colored
+from ...modules.spotify import Spotify
+
 
 language_code = 'en-US'
 
@@ -22,16 +22,15 @@ streaming_config = types.StreamingRecognitionConfig(
     interim_results=True)
 
 tts = TTS()
-
-notifier = Notifier()
 music = Spotify()
 
 
-class VoiceInterface(object):
+class VoiceInterface:
 
-    def __init__(self, voice="Brian"):
+    def __init__(self, notifier, voice="Brian"):
         self.voice = voice
         self.prev_answer = ""
+        self.notifier = notifier
 
     def recognize_as_stream(self, interim_function, final_function, notify=True):
         """Continuously recognizes speech as a stream of bytes.
@@ -39,7 +38,7 @@ class VoiceInterface(object):
         recognition result as final runs final_function on it.
         """
         if notify:
-            notifier.new("Listening...")
+            self.notifier.new("Listening...")
 
         with MicrophoneStream() as stream:
             audio_generator = stream.generator()
@@ -73,7 +72,7 @@ class VoiceInterface(object):
 
 
                 if not result.is_final:
-                    notifier.update(transcript)
+                    self.notifier.update(transcript)
                     sys.stdout.write(colored(transcript + overwrite_chars, frame = False) + '\r')
                     sys.stdout.flush()
                     num_chars_printed = len(transcript)
@@ -83,11 +82,11 @@ class VoiceInterface(object):
                     interim_function(transcript.lower())
                     final_function(transcript.lower())
                     time.sleep(0.3)
-                    notifier.close()
+                    self.notifier.close()
                     break
 
     def input(self, text, regex = "~"):
-        notifier.new(text)
+        self.notifier.new(text)
         self.output(text)
 
         with MicrophoneStream() as stream:
@@ -106,18 +105,18 @@ class VoiceInterface(object):
                 overwrite_chars = ' ' * (num_chars_printed - len(transcript))
 
                 if not result.is_final:
-                    notifier.update(transcript)
+                    self.notifier.update(transcript)
                     sys.stdout.write(colored(transcript + overwrite_chars, frame = False) + '\r')
                     sys.stdout.flush()
                     num_chars_printed = len(transcript)
 
                     if re.search(regex, transcript):
-                        notifier.close()
+                        self.notifier.close()
                         return re.findall(regex, transcript)[0]
                 else:
-                    notifier.update(transcript)
+                    self.notifier.update(transcript)
                     print(colored(transcript + overwrite_chars))
-                    notifier.close()
+                    self.notifier.close()
                     return transcript
 
     def output(self, text, prob=1):
@@ -129,6 +128,7 @@ class VoiceInterface(object):
                 music.play()
             else:
                 tts.say(text, voiceID=self.voice)
+
 
 if __name__ == "__main__":
     def interim(text):
