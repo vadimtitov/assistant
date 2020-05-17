@@ -1,10 +1,7 @@
 """Telegram bot interface."""
 
 import os
-import re
 import time
-import json
-import requests
 import secrets
 
 import telegram

@@ -23,6 +23,7 @@ from assistant.utils import (colored,
                              device_is_charging,
                              device_has_battery,
                              get_my_ip)
+from assistant.custom import wrappers
 
 
 if not os_is_raspbian():
@@ -179,6 +180,7 @@ class Assistant(object):
         respond = random.choice(os.listdir(path))
         os.system(f'mpg123 {path}/{respond}')
 
+    @wrappers.wrap_listen
     def _listen(self):
         """Initiates streaming speech recognition and
         natural language processor when assistant is called.
@@ -236,6 +238,7 @@ class Assistant(object):
         with keyboard.Listener(on_press=on_press) as listener:
             listener.join()
 
+    @wrappers.wrap_run
     def run(self):
         """Runs the voice and key activation threads,
         telegram bot and web api.

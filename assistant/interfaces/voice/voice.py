@@ -8,7 +8,7 @@ from .microphone_stream import MicrophoneStream, RATE
 from .text_to_speech import TTS
 from ...utils import colored
 from ...modules.spotify import Spotify
-
+from assistant.custom import wrappers
 
 language_code = 'en-US'
 
@@ -119,6 +119,7 @@ class VoiceInterface:
                     self.notifier.close()
                     return transcript
 
+    @wrappers.wrap_voice_output
     def output(self, text, prob=1):
         if prob is 1 or random.random() < prob:
             self.prev_answer = text
