@@ -1,6 +1,6 @@
 import os
 
-from pynput.keyboard import Controller
+from pynput.keyboard import Controller, Key  # noqa: F401
 
 
 COMMANDS = {
