@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 
-import os
 import re
-
-from tabulate import tabulate
 
 from .text_structure import TextStructure
 from ..skills import expressions, entities
@@ -22,17 +19,17 @@ def prepare_regex_expressions():
             entity_names = re.findall(entities_regex, expr)
 
             # create search regex
-            regex = re.sub(r"<<.*?>>",  r"(.*)", expr) #"(.*?)"
-            regex = re.sub(r"<.*?>",  r"([a-zA-Z0-9_]*)", regex)
+            regex = re.sub(r"<<.*?>>", r"(.*)", expr)  # "(.*?)"
+            regex = re.sub(r"<.*?>", r"([a-zA-Z0-9_]*)", regex)
 
             result = {
                 "value": expr,
                 "regex": regex,
-                "entity_names": entity_names
+                "entity_names": entity_names,
             }
             try:
                 processed_exprs[intent].append(result)
-            except:
+            except KeyError:
                 processed_exprs[intent] = [result]
     return processed_exprs
 
@@ -44,10 +41,7 @@ class NaturalLanguageUnderstander:
     """One-off Natural Language Understander.
     """
 
-    def __init__(self,
-        expressions=processed_exprs,
-        custom_entities=entities
-    ):
+    def __init__(self, expressions=processed_exprs, custom_entities=entities):
         self.expressions = expressions
         self.custom_entities = custom_entities
 
@@ -77,7 +71,8 @@ class NaturalLanguageUnderstander:
 
                 if found:
                     x = found[0]
-                    if "" in x: x = [x]
+                    if "" in x:
+                        x = [x]
                     entities = dict(zip(expr["entity_names"], x))
                     end = text.find(x[-1]) + len(x[-1])
 
@@ -86,14 +81,14 @@ class NaturalLanguageUnderstander:
                         "expression": expr["value"],
                         "intent": intent,
                         "entities": entities,
-                        "end": end
+                        "end": end,
                     }
         return {
             "text": text,
             "expression": None,
-            "intent":   None,
+            "intent": None,
             "entities": {},
-            "end": None
+            "end": None,
         }
 
     def find_custom_entities(self, text):
@@ -102,8 +97,8 @@ class NaturalLanguageUnderstander:
         """
         result = dict()
 
-        for key, entities in self.custom_entities.items():
-            regex = "|".join(entities)
+        for key, ents in self.custom_entities.items():
+            regex = "|".join(ents)
             match = re.findall(regex, text)
 
             if match:
@@ -112,7 +107,7 @@ class NaturalLanguageUnderstander:
         return result
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     nlu = NaturalLanguageUnderstander()
     while True:
         text = input("Type your request: ")

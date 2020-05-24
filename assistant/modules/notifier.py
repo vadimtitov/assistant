@@ -4,9 +4,9 @@ import os
 
 if os.uname()[1] == "raspberrypi":
 
-
     class Notifier:
-        """Dummy notifier class as we dont need notifications on Raspberry Pi."""
+        """Dummy notifier class - no notifications on Raspberry Pi."""
+
         def new(self, text):
             pass
 
@@ -21,24 +21,26 @@ if os.uname()[1] == "raspberrypi":
 
 
 else:
-    # pgi module is designed to work in virtual environment, assert we are in one
-    assert "VIRTUAL_ENV" in os.environ, "You are not using virtual environment!"
+    # pgi module is designed to work in virtual environment
+    assert (
+        "VIRTUAL_ENV" in os.environ
+    ), "You are not using virtual environment!"
 
     import time
     import pgi
     from pgi.repository import Notify
 
-    pgi.require_version('Notify', '0.7')
-    Notify.init('Test')
-
+    pgi.require_version("Notify", "0.7")
+    Notify.init("Test")
 
     class Notifier:
         """Simple interface for updatable system notifications."""
 
         def __init__(
-            self, title=' ',
-            text='Listening...',
-            icon='~/Dropbox/Jarvis/.icons/J.png'
+            self,
+            title=" ",
+            text="Listening...",
+            icon="~/Dropbox/Jarvis/.icons/J.png",
         ):
             self.icon = icon
             self.notification = Notify.Notification.new(title, text, icon)
@@ -51,7 +53,7 @@ else:
 
         def update(self, text):
             """Update existing notification."""
-            self.notification.update(' ', text, self.icon)
+            self.notification.update(" ", text, self.icon)
             self.notification.show()
 
         def close(self):

@@ -6,7 +6,6 @@ from .nlu import NaturalLanguageUnderstander
 
 
 class NaturalLanguageProcessor(object):
-
     def __init__(self):
         self.nlu = NaturalLanguageUnderstander()
         self.completed = []
@@ -17,17 +16,17 @@ class NaturalLanguageProcessor(object):
         corresponds to a unique intent found in the text.
         """
         for item in self.completed:
-            text = text.replace(item.text, '')
-        parts = re.split(' and also | and | also ', text)
+            text = text.replace(item.text, "")
+        parts = re.split(" and also | and | also ", text)
         for part in parts:
             yield self.nlu.understand(part)
 
     def context_structs(self, text):
         for struct in self.structs(text):
-            pass #if struct.intent is None and struct.similarTo:
+            pass  # if struct.intent is None and struct.similarTo:
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     nlp = NaturalLanguageProcessor()
     while True:
         text = input("Type your request: ")

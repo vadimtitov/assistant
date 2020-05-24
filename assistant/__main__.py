@@ -9,14 +9,9 @@ def main():
     on_server = os.uname()[1] == "raspberrypi"
 
     try:
-        assistant = Assistant(
-            name = sys.argv[1],
-            on_server=on_server
-        )
+        assistant = Assistant(name=sys.argv[1], on_server=on_server)
     except IndexError:
-        assistant = Assistant(
-            on_server=on_server
-        )
+        assistant = Assistant(on_server=on_server)
     assistant.run()
 
 

@@ -1,7 +1,7 @@
-import re, yaml
+import re
 from tabulate import tabulate
 
-from ..skills import expressions
+from assistant.skills import expressions
 
 
 class TextStructure(object):
@@ -10,17 +10,17 @@ class TextStructure(object):
     """
 
     def __init__(self, result):
-        self.text = result['text']
+        self.text = result["text"]
         self.intent, self.subintent = None, None
         try:
-            intent = result['intent']
+            intent = result["intent"]
             if "." in intent:
                 self.intent, self.subintent = intent.split(".")
             else:
                 self.intent = intent
         except (KeyError, TypeError):
             pass
-        self.entities = result['entities']
+        self.entities = result["entities"]
         self.complete_entities = result["complete_entities"]
         self.expression = result["expression"]
         self.end = result["end"]
@@ -31,15 +31,18 @@ class TextStructure(object):
             ["intent", self.intent],
             ["subintent", self.subintent],
             ["entities", self.entities],
-            ["complete", self.is_complete()]
+            ["complete", self.is_complete()],
         ]
-        return tabulate(result, tablefmt = "fancy_grid") #rst
+        return tabulate(result, tablefmt="fancy_grid")  # rst
 
     def __eq__(self, other):
-        return all((self.intent == other.intent,
-            self.subintent == other.subintent,
-            self.entities == other.entities
-        ))
+        return all(
+            (
+                self.intent == other.intent,
+                self.subintent == other.subintent,
+                self.entities == other.entities,
+            )
+        )
 
     def update(self, other):
         """Merge entities of two text structures.
@@ -80,7 +83,9 @@ class TextStructure(object):
             return True
 
         # if all required entities are present
-        required_entities = set(re.findall(r"<{1,2}(.*?)>{1,2}", similar_expr[0]))
+        required_entities = set(
+            re.findall(r"<{1,2}(.*?)>{1,2}", similar_expr[0])
+        )
 
         if self.complete_entities == required_entities:
             return True

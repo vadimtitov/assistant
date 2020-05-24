@@ -1,20 +1,22 @@
 """Telegram bot interface."""
 
-import os
 import time
-import secrets
+import random
 
 import telegram
-from telegram.ext import (Updater,
-                          CommandHandler,
-                          MessageHandler,
-                          Filters)
+from telegram.ext import Updater, MessageHandler, Filters
 
-from assistant.utils import *
+from assistant.utils import colored
 
-# we import all to include custom functions/objects
-# but mainly we import TOKEN, ALLOWED_USERS_DICT, KEYBOARD, KEYS_ACTIONS
-from assistant.custom.telegram_config import *
+from assistant.custom.telegram_config import (
+    TOKEN,
+    ALLOWED_USERS_DICT,
+    KEYBOARD,
+    KEYS_ACTIONS,
+)
+# custom functions/objects
+from assistant.custom.telegram_config import *   # noqa: F403, F401
+
 
 KEYS = set(key for row in KEYBOARD for key in row)
 ALLOWED_USERS = ALLOWED_USERS_DICT.keys()
@@ -30,7 +32,7 @@ def user_is_allowed(bot, update):
 
 def handle_buttons(bot, update):
     text = update.message.text
-    if  text in KEYS:
+    if text in KEYS:
         exec(KEYS_ACTIONS[text])
         return True
 
@@ -43,7 +45,7 @@ class TelegramBot(Updater):
         assistant,
         token=TOKEN,
         admin_id=ADMIN_ID,
-        allowed_users=ALLOWED_USERS_DICT
+        allowed_users=ALLOWED_USERS_DICT,
     ):
         """Init."""
         Updater.__init__(self, token=token)
@@ -67,7 +69,8 @@ class TelegramBot(Updater):
         self.bot.send_message(
             chat_id=update.message.chat_id,
             text=text,
-            reply_markup=reply_markup)
+            reply_markup=reply_markup,
+        )
 
     def handle_text(self, text):
         """Calls handle function even if there not enough
@@ -78,8 +81,7 @@ class TelegramBot(Updater):
         for struct in self.nlp.structs(text):
             if struct not in self.nlp.completed:
                 self.assistant.skills.handle(
-                    text_struct = struct,
-                    interface = self
+                    text_struct=struct, interface=self
                 )
                 self.nlp.completed.append(struct)
         self.nlp.previous = self.nlp.completed
@@ -98,26 +100,28 @@ class TelegramBot(Updater):
             if not handle_buttons(bot, update):
                 self.handle_text(text)
         else:
-            self.output(
-                text="Access denied.",
-                chat_id=update.message.chat_id
-            )
+            self.output(text="Access denied.", chat_id=update.message.chat_id)
 
     def _describe_message(self, update):
         if not update.message.chat.first_name:
-            update.message.chat.first_name = ''
+            update.message.chat.first_name = ""
         if not update.message.chat.last_name:
-            update.message.chat.last_name = ''
+            update.message.chat.last_name = ""
 
-        name = colored(update.message.chat.first_name + ' ' +
-                       update.message.chat.last_name, 'OKBLUE',
-                       frame = False)
+        name = colored(
+            update.message.chat.first_name
+            + " "
+            + update.message.chat.last_name,
+            "OKBLUE",
+            frame=False,
+        )
         sender_id = update.message.chat_id
-        report = f'{name} ({sender_id}): {update.message.text}'
+        report = f"{name} ({sender_id}): {update.message.text}"
         print(report)
 
     def input(self, text, regex=None, chat_id=None):
-        if not chat_id: chat_id = self.last_id
+        if not chat_id:
+            chat_id = self.last_id
         print(" *** UPDATES ***")
         print(self.bot.get_updates())
 
@@ -129,20 +133,22 @@ class TelegramBot(Updater):
             update = self.bot.get_updates()[-1]
             if all(
                 update.message.message_id != last_message_id,
-                update.message.chat_id == chat_id
+                update.message.chat_id == chat_id,
             ):
                 return update.message.text
             time.sleep(0.1)
 
     def output(self, text, chat_id=None, prob=1):
-        if prob is 1 or random.random() < prob:
+        if prob == 1 or random.random() < prob:
             if not chat_id:
                 chat_id = self.last_id
             self.bot.send_message(chat_id=chat_id, text=text)
 
     def run(self):
         """Run telegram bot."""
-        print(colored('Telegram bot: active', 'OKGREEN',frame = False))
-        text_message_handler = MessageHandler(Filters.text, self.handle_message)
+        print(colored("Telegram bot: active", "OKGREEN", frame=False))
+        text_message_handler = MessageHandler(
+            Filters.text, self.handle_message
+        )
         self.dispatcher.add_handler(text_message_handler)
         self.start_polling(clean=True)

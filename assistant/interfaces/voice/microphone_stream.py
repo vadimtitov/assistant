@@ -8,6 +8,7 @@ CHUNK = int(RATE / 10)  # 100ms
 
 class MicrophoneStream(object):
     """Opens a recording stream as a generator yielding the audio chunks."""
+
     def __init__(self, rate=RATE, chunk=CHUNK):
         self._rate = rate
         self._chunk = chunk
@@ -20,8 +21,10 @@ class MicrophoneStream(object):
         self._audio_interface = pyaudio.PyAudio()
         self._audio_stream = self._audio_interface.open(
             format=pyaudio.paInt16,
-            channels=1, rate=self._rate,
-            input=True, frames_per_buffer=self._chunk,
+            channels=1,
+            rate=self._rate,
+            input=True,
+            frames_per_buffer=self._chunk,
             stream_callback=self._fill_buffer,
         )
 
@@ -63,4 +66,4 @@ class MicrophoneStream(object):
                 except queue.Empty:
                     break
 
-            yield b''.join(data)
+            yield b"".join(data)
