@@ -5,6 +5,9 @@ from six.moves import queue
 RATE = 16000
 CHUNK = int(RATE / 10)  # 100ms
 
+# init pyaudio here to make future inits faster
+audio_interface = pyaudio.PyAudio()
+
 
 class MicrophoneStream(object):
     """Opens a recording stream as a generator yielding the audio chunks."""
@@ -18,8 +21,8 @@ class MicrophoneStream(object):
         self.closed = True
 
     def __enter__(self):
-        self._audio_interface = pyaudio.PyAudio()
-        self._audio_stream = self._audio_interface.open(
+        audio_interface = pyaudio.PyAudio()
+        self._audio_stream = audio_interface.open(
             format=pyaudio.paInt16,
             channels=1,
             rate=self._rate,
@@ -39,7 +42,6 @@ class MicrophoneStream(object):
         # Signal the generator to terminate so that the client's
         # streaming_recognize method will not block the process termination.
         self._buff.put(None)
-        self._audio_interface.terminate()
 
     def _fill_buffer(self, in_data, frame_count, time_info, status_flags):
         """Continuously collect data from the audio stream, into the buffer."""
