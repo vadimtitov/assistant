@@ -139,5 +139,4 @@ assistant/modules/daemons/
 
 # other user specific
 dependencies/swig-3.0.12/
-
-
+.cache-*
