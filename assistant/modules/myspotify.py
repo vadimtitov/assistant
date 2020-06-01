@@ -4,7 +4,6 @@ import os
 import time
 import random
 import threading
-from contextlib import suppress
 
 import spotipy.util as util
 import tekore as tk
@@ -70,19 +69,14 @@ def play_returned_tracks(func):
 class MySpotify(tk.Spotify):
     """Store simple spotipy methods."""
 
-    def __init__(self, username=None, default_device_name=None):
+    def __init__(self, username=None, default_device_id=None):
         self.username = username if username else os.environ["SPOTIFY_USERNAME"]
-        default_device_name = (default_device_name if default_device_name
-            else os.environ["SPOTIFY_DEFAULT_DEVICE_NAME"])
+        self.default_device_id = (
+            default_device_id if default_device_id
+            else os.environ["SPOTIFY_DEFAULT_DEVICE_ID"]
+        )
         # start token refresh daemon
         threading.Thread(target=self._refresh_token_loop).start()
-
-        while True:
-            with suppress(AttributeError):
-                self.default_device_id = self._get_device_id(
-                    default_device_name
-                )
-                break
 
     def _refresh_token_loop(self):
         while True:

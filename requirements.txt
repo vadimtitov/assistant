@@ -20,3 +20,4 @@ wikipedia==1.4.0
 PyYAML==5.1
 requests==2.21.0
 grpcio==1.17.1
+tekore==1.7.0
