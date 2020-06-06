@@ -82,7 +82,7 @@ class MySpotify(tk.Spotify):
         while True:
             self._token = util.prompt_for_user_token(self.username, scope)
             super().__init__(self._token)
-            time.sleep(3500)
+            time.sleep(300)
 
     def _get_device_id(self, device_name):
         devices = self.playback_devices()

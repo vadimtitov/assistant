@@ -69,6 +69,9 @@ class Assistant(object):
             notifier=self.notifier, voice=self.personality["polly_voice"]
         )
 
+        self.voice.output("Hello")
+
+
     def _activate_keyword_detector(self):
         while self.detector_locked:
             time.sleep(0.5)

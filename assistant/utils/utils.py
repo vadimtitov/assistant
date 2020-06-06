@@ -2,6 +2,7 @@ import os
 import re
 import subprocess
 import signal
+import time
 import random
 
 import psutil
@@ -58,10 +59,14 @@ def os_is_raspbian():
     return os.uname()[1] == "raspberrypi"
 
 
-def get_my_ip():
-    with os.popen("ifconfig | grep 'inet 192'") as process:
-        return re.findall(r"\d{3}\.\d{3}\.\d\.\d{2,3}", process.read())[0]
-
+def get_my_ip(timeout=30):
+    start_time = time.time()
+    while time.time() - start_time <= timeout:
+        try:
+            with os.popen("ifconfig | grep 'inet 192'") as process:
+                return re.findall(r"\d{3}\.\d{3}\.\d\.\d{2,3}", process.read())[0]
+        except IndexError:
+            pass
 
 def device_is_charging():
     with os.popen(
