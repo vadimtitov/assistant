@@ -109,13 +109,16 @@ class Assistant(object):
             if params["ip"] == my_ip:
                 my_priority = params["priority"]
                 print("my priority:", my_priority)
+                break
             else:
                 my_priority = 1  # ?
-
+        
         # find devices with higher priority
         self.higher_priority_ips = []
         for _, params in devices.items():
             if params["priority"]:
+                print(params)
+
                 if params["priority"] < my_priority:
                     self.higher_priority_ips.append(params["ip"])
         print("higher ips:", self.higher_priority_ips)
@@ -128,8 +131,12 @@ class Assistant(object):
                     == "active"
                 ):
                     return False
-            except Exception:  # (ConnectionRefusedError, ConnectTimeoutError)
-                traceback.print_exc()
+            except (
+                requests.exceptions.ConnectTimeout, 
+                requests.exceptions.ConnectionError,
+                requests.exceptions.ReadTimeout,
+                ConnectionRefusedError,
+            ):
                 print(ip, "is not active")
         return True
 
