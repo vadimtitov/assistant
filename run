@@ -3,4 +3,4 @@ cd $DIR
 
 source venv/bin/activate
 source assistant/custom/credentials/set_env_var
-python3 -W ignore -m assistant
+python3 -W ignore -m assistant $1

@@ -78,6 +78,7 @@ class Assistant(object):
         if not self._keyword_detector_active:
             self._keyword_detector_active = True
             self.detector.start(self._on_call)
+            print("keyword detector activated")
 
     def _terminate_keyword_detector(self):
         while self.detector_locked:
@@ -88,6 +89,7 @@ class Assistant(object):
                 self.detector.terminate()
             except AttributeError:
                 pass
+            print("keyword detector terminated")
 
     def _set_personality(self):
         with open("assistant/custom/personalities.yaml") as file:
@@ -137,7 +139,7 @@ class Assistant(object):
                 requests.exceptions.ReadTimeout,
                 ConnectionRefusedError,
             ):
-                print(ip, "is not active")
+                pass
         return True
 
     def _pick_main_detector(self):
@@ -146,10 +148,8 @@ class Assistant(object):
 
         while True:
             if self._is_main_listener():
-                print("You are main listener!")
                 self._activate_keyword_detector()
             else:
-                print("You are not main listener!")
                 self._terminate_keyword_detector()
             time.sleep(10)
 

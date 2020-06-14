@@ -5,13 +5,16 @@ from .assistant import Assistant
 
 
 def main():
-    print("*** Activating assistant ***")
     on_server = os.uname()[1] == "raspberrypi"
 
     try:
-        assistant = Assistant(name=sys.argv[1], on_server=on_server)
+        name = sys.argv[1]
     except IndexError:
-        assistant = Assistant(on_server=on_server)
+        name = "friday"
+
+    print(f"*** Activating assistant {name}***")
+
+    assistant = Assistant(name=name, on_server=on_server)
     assistant.run()
 
 
