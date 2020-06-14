@@ -112,7 +112,7 @@ class Assistant(object):
                 break
             else:
                 my_priority = 1  # ?
-        
+
         # find devices with higher priority
         self.higher_priority_ips = []
         for _, params in devices.items():
@@ -132,7 +132,7 @@ class Assistant(object):
                 ):
                     return False
             except (
-                requests.exceptions.ConnectTimeout, 
+                requests.exceptions.ConnectTimeout,
                 requests.exceptions.ConnectionError,
                 requests.exceptions.ReadTimeout,
                 ConnectionRefusedError,

@@ -6,7 +6,10 @@ import os
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
 # get skill names
-skill_names = [name.replace(".py", "") for name in os.listdir(dir_path)]
+skill_names = [
+    name.replace(".py", "") for name in os.listdir(dir_path)
+    if name[-3:] == ".py" or "." not in name
+]
 skill_names.remove("__init__")
 skill_names.remove("__pycache__")
 
