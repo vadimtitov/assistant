@@ -18,6 +18,5 @@ spotipy==2.4.4
 tabulate==0.8.3
 wikipedia==1.4.0
 PyYAML==5.1
-requests==2.21.0
 grpcio==1.17.1
 tekore==1.7.0

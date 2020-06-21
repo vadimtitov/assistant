@@ -1,7 +1,9 @@
+import os
 import re
 import sys
 import time
 import random
+import requests
 
 from google.cloud import speech
 from google.cloud.speech import enums
@@ -10,37 +12,35 @@ from google.cloud.speech import types
 from .microphone_stream import MicrophoneStream, RATE
 from .text_to_speech import TTS
 from ...utils import colored
-from ...modules.spotify import Spotify
 from assistant.custom import wrappers
 
-language_code = "en-US"
 
 client = speech.SpeechClient()
 config = types.RecognitionConfig(  # Configs
     encoding=enums.RecognitionConfig.AudioEncoding.LINEAR16,
     sample_rate_hertz=RATE,
-    language_code=language_code,
+    language_code=os.environ["GOOGLE_LANGUAGE_CODE"],
 )
 streaming_config = types.StreamingRecognitionConfig(
     config=config, interim_results=True
 )
 
-tts = TTS()
-music = Spotify()
-
 
 class VoiceInterface:
+    """Voice interface."""
+
     def __init__(self, notifier, voice="Brian"):
         self.voice = voice
-        self.prev_answer = ""
         self.notifier = notifier
+        self.prev_answer = ""
+        self.tts = TTS()
 
     def recognize_as_stream(
         self, interim_function, final_function, notify=True
     ):
         """Continuously recognize speech as a stream of bytes
-        and call interim_function on every update, then call
-        final_function on the final update.
+        and call `interim_function` on every update, then call
+        `final_function` on the final update.
         """
         if notify:
             self.notifier.new("Listening...")
@@ -135,16 +135,26 @@ class VoiceInterface:
                     self.notifier.close()
                     return transcript
 
+    def recognize_from_bytes(
+        self, bytes,
+        sample_rate_hertz=48000,
+        encoding=enums.RecognitionConfig.AudioEncoding.OGG_OPUS,
+        language_code=os.environ["GOOGLE_LANGUAGE_CODE"],
+    ):
+        audio = {"content": bytes}
+        config = {
+            "language_code": language_code,
+            "sample_rate_hertz": sample_rate_hertz,
+            "encoding": encoding,
+        }
+        response = client.recognize(config, audio)
+        return response.results[0].alternatives[0].transcript
+
     @wrappers.wrap_voice_output
     def output(self, text, prob=1):
         if prob == 1 or random.random() < prob:
             self.prev_answer = text
-            if music.is_playing():
-                music.pause()
-                tts.say(text, voiceID=self.voice)
-                music.play()
-            else:
-                tts.say(text, voiceID=self.voice)
+            self.tts.say(text, voiceID=self.voice)
 
 
 if __name__ == "__main__":

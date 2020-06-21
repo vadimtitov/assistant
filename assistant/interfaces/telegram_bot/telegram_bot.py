@@ -2,9 +2,15 @@
 
 import time
 import random
+import requests
 
 import telegram
-from telegram.ext import Updater, MessageHandler, CommandHandler, Filters
+from telegram.ext import (
+    Updater,
+    MessageHandler,
+    CommandHandler,
+    Filters,
+)
 
 from assistant.utils import colored
 
@@ -30,11 +36,7 @@ def handle_buttons(bot, update):
 
 def get_full_name(update):
     name = (update.message.chat.first_name, update.message.chat.last_name)
-
-    for word in name:
-        word = word if word else ""
-
-    return " ".join(name)
+    return " ".join(w for w in name if w)
 
 
 def allowed_users_only(func):
@@ -100,6 +102,16 @@ class TelegramBot(Updater):
         if not handle_buttons(bot, update):
             self._handle_text(text)
 
+    @allowed_users_only
+    def handle_voice(self, bot, update):
+        self.last_update = update
+        voice_bytes = bytes(
+            update.message.voice.get_file(
+            ).download_as_bytearray()
+        )
+        text = self.assistant.voice.recognize_from_bytes(voice_bytes)
+        self._handle_text(text)
+
     def _handle_text(self, text):
         """Calls handle function even if there not enough
         info in the text, handle function will then
@@ -156,8 +168,13 @@ class TelegramBot(Updater):
         text_message_handler = MessageHandler(
             Filters.text, self.handle_message
         )
+        voice_message_handler = MessageHandler(
+            Filters.voice, self.handle_voice
+        )
         keyboard_handler = CommandHandler("keyboard", self.send_keyboard)
 
         self.dispatcher.add_handler(text_message_handler)
+        self.dispatcher.add_handler(voice_message_handler)
         self.dispatcher.add_handler(keyboard_handler)
+
         self.start_polling(clean=True)
