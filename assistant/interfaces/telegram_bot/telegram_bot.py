@@ -4,7 +4,7 @@ import time
 import random
 
 import telegram
-from telegram.ext import Updater, MessageHandler, Filters
+from telegram.ext import Updater, MessageHandler, CommandHandler, Filters
 
 from assistant.utils import colored
 
@@ -19,15 +19,6 @@ from assistant.custom.telegram_config import *   # noqa: F403, F401
 
 
 KEYS = set(key for row in KEYBOARD for key in row)
-ALLOWED_USERS = ALLOWED_USERS_DICT.keys()
-ADMIN_ID = ALLOWED_USERS_DICT["admin"]
-
-
-def user_is_allowed(bot, update):
-    allowed_ids = {ALLOWED_USERS_DICT[user] for user in ALLOWED_USERS}
-    if update.message.chat_id in allowed_ids:
-        return True
-    return False
 
 
 def handle_buttons(bot, update):
@@ -37,6 +28,32 @@ def handle_buttons(bot, update):
         return True
 
 
+def get_full_name(update):
+    name = (update.message.chat.first_name, update.message.chat.last_name)
+
+    for word in name:
+        word = word if word else ""
+
+    return " ".join(name)
+
+
+def allowed_users_only(func):
+    def wrapper(self, bot, update):
+        if update.message.chat_id in ALLOWED_USERS_DICT.values():
+            func(self, bot, update)
+        else:
+            bot.send_message(text="Access denied.",
+                             chat_id=update.message.chat_id)
+            # let admin know
+            msg = (
+                "Unauthorized user "
+                f"{get_full_name(update)}({update.message.chat_id}) "
+                f"sent message: {update.message.text}"
+            )
+            bot.send_message(text=msg, chat_id=ALLOWED_USERS_DICT["admin"])
+    return wrapper
+
+
 class TelegramBot(Updater):
     """Telegram bot interface."""
 
@@ -44,16 +61,14 @@ class TelegramBot(Updater):
         self,
         assistant,
         token=TOKEN,
-        admin_id=ADMIN_ID,
         allowed_users=ALLOWED_USERS_DICT,
     ):
         """Init."""
         Updater.__init__(self, token=token)
 
         self.assistant = assistant
-        self.admin_id = admin_id
+        self.admin_id = allowed_users["admin"]
         self.users = allowed_users
-
         self.nlp = assistant.nlp
 
     @property
@@ -63,16 +78,29 @@ class TelegramBot(Updater):
         except NameError:
             return self.users["admin"]
 
-    def _send_keyboard(self, update, text="Custom keyboard."):
-        """Send custom keyboard to a user from `update`"""
+    @allowed_users_only
+    def send_keyboard(self, bot, update):
+        """Send custom keyboard to user"""
         reply_markup = telegram.ReplyKeyboardMarkup(KEYBOARD)
-        self.bot.send_message(
+        bot.send_message(
             chat_id=update.message.chat_id,
-            text=text,
+            text="Custom keyboard",
             reply_markup=reply_markup,
         )
 
-    def handle_text(self, text):
+    @allowed_users_only
+    def handle_message(self, bot, update):
+        """A text message handler method."""
+        self._describe_message(update)
+        self.last_update = update
+
+        text = update.message.text
+        print(text)
+
+        if not handle_buttons(bot, update):
+            self._handle_text(text)
+
+    def _handle_text(self, text):
         """Calls handle function even if there not enough
         info in the text, handle function will then
         either assume the lacking information or do nothing.
@@ -87,31 +115,9 @@ class TelegramBot(Updater):
         self.nlp.previous = self.nlp.completed
         self.nlp.completed = []
 
-    def handle_message(self, bot, update):
-        """A text message handler method."""
-        self._describe_message(update)
-
-        if user_is_allowed(bot, update):
-            self.last_update = update
-
-            text = update.message.text
-            print(text)
-
-            if not handle_buttons(bot, update):
-                self.handle_text(text)
-        else:
-            self.output(text="Access denied.", chat_id=update.message.chat_id)
-
     def _describe_message(self, update):
-        if not update.message.chat.first_name:
-            update.message.chat.first_name = ""
-        if not update.message.chat.last_name:
-            update.message.chat.last_name = ""
-
         name = colored(
-            update.message.chat.first_name
-            + " "
-            + update.message.chat.last_name,
+            get_full_name(update),
             "OKBLUE",
             frame=False,
         )
@@ -150,5 +156,8 @@ class TelegramBot(Updater):
         text_message_handler = MessageHandler(
             Filters.text, self.handle_message
         )
+        keyboard_handler = CommandHandler("keyboard", self.send_keyboard)
+
         self.dispatcher.add_handler(text_message_handler)
+        self.dispatcher.add_handler(keyboard_handler)
         self.start_polling(clean=True)
