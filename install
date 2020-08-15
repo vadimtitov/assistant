@@ -1,52 +1,44 @@
-
-INSTALL="apt-get install"
-
 echo "*** Updating the system ***"
 sudo apt-get update
 sudo apt-get upgrade
 sudo apt-get update
 
-echo "*** Installing PCRE ***"
-sudo $INSTALL libc6-dev
-sudo $INSTALL libpcre3 libpcre3-dev
 
-echo "*** Installing Python and Python Dev Kit ***"
-sudo $INSTALL python-all-dev python3-all-dev
-sudo $INSTALL python3.6
-sudo $INSTALL python3.6-venv
+echo "*** Installing dependencies ***"
+declare -a deps=(tmux
+                 libc6-dev libpcre3 libpcre3-dev
+                 python-all-dev python3-all-dev
+                 python3.7 python3.6-venv
+                 g++
+                 portaudio19-dev
+                 python-pyaudio python3-pyaudio
+                 sox libatlas-base-dev
+                 xdotool)
 
-echo "*** Installing g++ ***"
-sudo $INSTALL g++
+sudo apt-get install "${deps[@]}"
 
-echo "*** Installing Pyaudio and dependencies***"
-sudo $INSTALL python-pyaudio python3-pyaudio sox libatlas-base-dev
-sudo $INSTALL portaudio19-dev
-
-echo "*** Installing other dependencies***"
-sudo $INSTALL xdotool mpg123 qdbus
 
 echo "*** Installing Swig ***"
 cd dependencies/swig-3.0.12
 ./configure --prefix=/usr
 make -j 4
 sudo make install
-cd ..
-cd ..
+cd ../..
+
 
 echo "*** Installing snowboy ***"
 cd assistant/modules/snowboy/swig/Python3
 make
-cd ..
-cd ..
+cd ../..
+
 mv swig/Python3/* .
 mv Makefile swig/Python3/Makefile
 mv snowboy-detect-swig.i swig/Python3/snowboy-detect-swig.i
-cd ..
-cd ..
-cd ..
+cd ../../..
 
-# create venv
-python3.6 -m venv venv
+
+echo "*** Creating virtual environment ***"
+python3.7 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 
