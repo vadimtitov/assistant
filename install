@@ -4,11 +4,16 @@ sudo apt-get upgrade
 sudo apt-get update
 
 
+# Install Python3.7 and venv
+sudo apt-get install software-properties-common
+sudo add-apt-repository ppa:deadsnakes/ppa
+sudo apt-get install python3.7 python3-venv python3.7-venv
+
+
 echo "*** Installing dependencies ***"
 declare -a deps=(tmux
                  libc6-dev libpcre3 libpcre3-dev
-                 python-all-dev python3-all-dev
-                 python3.7 python3.6-venv
+                 python-all-dev python3-all-dev 
                  g++
                  portaudio19-dev
                  python-pyaudio python3-pyaudio
